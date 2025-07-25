@@ -1,0 +1,79 @@
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
+import { usePuterStore } from '~/lib/puter';
+
+export const meta: () => {
+  title?: string;
+  name?: string;
+  content?: string;
+}[] = () => [
+  { title: 'ResuScan | Review' },
+  { name: 'description', content: 'Analysis of your resume' },
+];
+
+const Resume = () => {
+  const { fs, kv } = usePuterStore();
+  const { id } = useParams();
+
+  const [imageUrl, setImageUrl] = useState<string>('');
+  const [resumeUrl, setResumeUrl] = useState<string>('');
+  const [feedback, setFeedback] = useState<string>('');
+
+  useEffect(() => {
+    const loadResume = async () => {
+      let resume = await kv.get(`resume:${id}`); // Use consistent key -- no space!
+      if (!resume) return;
+
+      const data = JSON.parse(resume);
+
+      // Fetch PDF blob and generate URL
+      const resumeBlob = await fs.read(data.resumePath);
+      if (resumeBlob) {
+        const pdfBlob = new Blob([resumeBlob], { type: 'application/pdf' });
+        const pdfUrl = URL.createObjectURL(pdfBlob);
+        setResumeUrl(pdfUrl);
+      }
+
+      // Fetch image blob and generate URL
+      const imageBlob = await fs.read(data.imagePath);
+      if (imageBlob) {
+        const imgUrl = URL.createObjectURL(imageBlob);
+        setImageUrl(imgUrl);
+      }
+
+      setFeedback(data.feedback);
+    };
+
+    loadResume();
+  }, [id, fs, kv]);
+
+  return (
+    <main className="!pt-0">
+      <nav className="resume-nav">
+        <Link to="/" className="back-button">
+          <img src="/icons/back.svg" alt="logo" className="w-2.5 h-2.5" />
+          <span className="text-gray-800 text-sm font-semibold">Back to Home</span>
+        </Link>
+      </nav>
+      <div className="flex flex-row w-full max-lg:flex-col-reverse">
+        <section className="feedback-section bg-[url(/images/bg-small.svg)] bg-cover h-[100vh] sticky top-0 items-center justify-center">
+          {imageUrl && resumeUrl && (
+            <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-wxl:h-fit w-fit">
+              <a href={resumeUrl} target="_blank" rel="noopener noreferrer">
+                <img
+                  src={imageUrl}
+                  className="w-full h-full rounded-2xl object-contain"
+                  alt="resume-img"
+                  title="resume"
+                />
+              </a>
+              
+            </div>
+          )}
+        </section>
+      </div>
+    </main>
+  );
+};
+
+export default Resume;
