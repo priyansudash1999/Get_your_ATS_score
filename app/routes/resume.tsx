@@ -21,7 +21,7 @@ const Resume = () => {
 
   useEffect(() => {
     const loadResume = async () => {
-      let resume = await kv.get(`resume:${id}`); // Use consistent key -- no space!
+      let resume = await kv.get(`resume:${id}`); 
       if (!resume) return;
 
       const data = JSON.parse(resume);
@@ -70,6 +70,21 @@ const Resume = () => {
               
             </div>
           )}
+        </section>
+
+        <section className='feedback-section'>
+          <h2 className='text-3xl !text-black font-bold'>Resume Review</h2>
+          {
+            feedback ? (
+              <div>
+                <div className='flex flex-col gap-8 animate-in fade-in duration-1000'>
+                  Summary of Your ATS Score
+                </div>  
+              </div>
+            ): (
+              <img src="/images/resume-scan-2.gif" alt="" className='w-full'/>
+            )
+          }
         </section>
       </div>
     </main>
